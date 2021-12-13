@@ -2,7 +2,6 @@
 
 # dependencies
 /node_modules
-.env
 /krmn_api/node_modules
 /.pnp
 .pnp.js

@@ -26,11 +26,11 @@ const User = db.user;
 const Client = db.client;
 
 
-db.sequelize.sync({ force: false })
-// db.sequelize.sync({ force: true }).then(() => {
-//     console.log("Drop and re-sync db.");
-//     initial();
-// });
+// db.sequelize.sync({ force: false })
+db.sequelize.sync({ force: true }).then(() => {
+    console.log("Drop and re-sync db.");
+    initial();
+});
 
 app.get('/', function (req, res) {
     res.sendFile(path + "index.html", function (err) {
@@ -76,19 +76,12 @@ function initial() {
     }).catch(error => console.log("error::", error.message));
 
     User.create({
-        username: 'Supriya',
-        email: 'supriya@krmn.in',
-        password: bcrypt.hashSync('qwerty', 8)
-    }).then(user => {
-        user.setRoles(1);
-    }).catch(error => console.log("error::", error.message));
-
-    User.create({
         username: 'Srikanth',
-        email: 'srikanth_ns@krmn.in',
+        email: 'nssrikanth7@gmail.com',
         password: bcrypt.hashSync('qwerty', 8)
     }).then(user => {
-        user.setRoles(1);
+        user.setRoles(2);
+        user.setRoles(3);
     }).catch(error => console.log("error::", error.message));
 
 
