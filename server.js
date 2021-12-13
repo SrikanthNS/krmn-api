@@ -127,7 +127,7 @@ require("./app/routes/task.routes")(app);
 // Client routes
 require("./app/routes/client.routes")(app);
 // set port, listen for requests
-const PORT = 80;
+const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}.`);
 });
