@@ -32,14 +32,6 @@ db.sequelize.sync({ force: true }).then(() => {
     initial();
 });
 
-app.get('/', function (req, res) {
-    res.sendFile(path + "index.html", function (err) {
-        if (err) {
-            res.status(500).send(err)
-        }
-    })
-});
-
 function initial() {
     Role.create({
         id: 1,
@@ -121,6 +113,16 @@ require("./app/routes/tutorial.routes")(app);
 require("./app/routes/task.routes")(app);
 // Client routes
 require("./app/routes/client.routes")(app);
+
+
+// Send index.html if no route Matches
+app.get('*', function (req, res) {
+    res.sendFile(path + "index.html", function (err) {
+        if (err) {
+            res.status(500).send(err)
+        }
+    })
+});
 // set port, listen for requests
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
