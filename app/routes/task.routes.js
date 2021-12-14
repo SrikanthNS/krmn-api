@@ -9,26 +9,26 @@ module.exports = app => {
     router.post("/", [authJwt.verifyToken], task.create);
 
     // Retrieve all task
-    router.get("/", task.findAll);
+    router.get("/", [authJwt.verifyToken], task.findAll);
 
     // Retrieve all published task
-    router.get("/completed", task.findAllPublished);
+    router.get("/completed", [authJwt.verifyToken], task.findAllPublished);
 
     // Retrieve current user tasks
     router.get("/user/tasks", [authJwt.verifyToken], task.currentUserTasks);
 
 
     // Retrieve a single Task with id
-    router.get("/:id", task.findOne);
+    router.get("/:id", [authJwt.verifyToken], task.findOne);
 
     // Update a Task with id
-    router.put("/:id", task.update);
+    router.put("/:id", [authJwt.verifyToken], task.update);
 
     // Delete a Task with id
-    router.delete("/:id", task.delete);
+    router.delete("/:id", [authJwt.verifyToken], task.delete);
 
     // Delete all task
-    router.delete("/", task.deleteAll);
+    router.delete("/", [authJwt.verifyToken], task.deleteAll);
 
     app.use('/api/tasks', router);
 };
