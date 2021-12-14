@@ -52,9 +52,9 @@ exports.currentUserTasks = (req, res) => {
 };
 
 // Retrieve all tasks from the database.
-exports.findAll = (req, res) => {
+exports.findAll = async (req, res) => {
     console.log("🚀 ~ file: task.controller.js ~ line 57 ~ req.userId", req.userId)
-    const isAdminUser = isAdmin(req.userId);
+    const isAdminUser = await isAdmin(req.userId);
 
     const description = req.query.description;
     let condition = description ? { description: { [Op.like]: `%${description}%` } } : null;
