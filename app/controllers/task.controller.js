@@ -1,3 +1,4 @@
+const { isAdmin } = require("../middleware/authJwt");
 const db = require("../models");
 const Task = db.task;
 const Op = db.Sequelize.Op;
@@ -50,11 +51,15 @@ exports.currentUserTasks = (req, res) => {
         });
 };
 
-// Retrieve all Tutorials from the database.
+// Retrieve all tasks from the database.
 exports.findAll = (req, res) => {
-    const description = req.query.description;
-    var condition = description ? { description: { [Op.like]: `%${description}%` } } : null;
+    const isAdminUser = isAdmin(req);
 
+    const description = req.query.description;
+    let condition = description ? { description: { [Op.like]: `%${description}%` } } : null;
+    if (isAdminUser) {
+        condition = { userId: req.userId, ...condition }
+    }
     Task.findAll({ where: condition })
         .then(data => {
             res.send(data);
