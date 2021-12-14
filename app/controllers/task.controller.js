@@ -57,9 +57,13 @@ exports.findAll = (req, res) => {
 
     const description = req.query.description;
     let condition = description ? { description: { [Op.like]: `%${description}%` } } : null;
-    if (isAdminUser) {
+    console.log("🚀 ~ file: task.controller.js ~ line 61 ~ isAdminUser", isAdminUser)
+
+    if (!isAdminUser) {
         condition = { userId: req.userId, ...condition }
     }
+    console.log("🚀 ~ file: task.controller.js ~ line 64 ~ condition", condition)
+
     Task.findAll({ where: condition })
         .then(data => {
             res.send(data);
