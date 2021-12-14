@@ -1,3 +1,6 @@
+const db = require("../models");
+const User = db.user;
+
 const isAdmin = (userId) => {
     User.findByPk(userId).then(user => {
         user.getRoles().then(roles => {
