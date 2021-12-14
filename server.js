@@ -26,11 +26,11 @@ const User = db.user;
 const Client = db.client;
 
 
-// db.sequelize.sync({ force: false })
-db.sequelize.sync({ force: true }).then(() => {
-    console.log("Drop and re-sync db.");
-    initial();
-});
+db.sequelize.sync({ force: false })
+// db.sequelize.sync({ force: true }).then(() => {
+//     console.log("Drop and re-sync db.");
+//     initial();
+// });
 
 function initial() {
     Role.create({
