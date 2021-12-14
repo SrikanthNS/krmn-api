@@ -26,11 +26,11 @@ const User = db.user;
 const Client = db.client;
 
 
-db.sequelize.sync({ force: false })
-// db.sequelize.sync({ force: true }).then(() => {
-//     console.log("Drop and re-sync db.");
-//     initial();
-// });
+// db.sequelize.sync({ force: false })
+db.sequelize.sync({ force: true }).then(() => {
+    console.log("Drop and re-sync db.");
+    initial();
+});
 
 function initial() {
     Role.create({
@@ -107,8 +107,8 @@ require('./app/routes/auth.routes')(app);
 // User routes
 require('./app/routes/user.routes')(app);
 
-// Tutorial routes
-require("./app/routes/tutorial.routes")(app);
+// // Tutorial routes
+// require("./app/routes/tutorial.routes")(app);
 // Task routes
 require("./app/routes/task.routes")(app);
 // Client routes
