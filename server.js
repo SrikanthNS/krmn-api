@@ -26,11 +26,11 @@ const User = db.user;
 const Client = db.client;
 
 
-// db.sequelize.sync({ force: false })
-db.sequelize.sync({ force: true }).then(() => {
-    console.log("Drop and re-sync db.");
-    initial();
-});
+db.sequelize.sync({ force: false })
+// db.sequelize.sync({ force: true }).then(() => {
+//     console.log("Drop and re-sync db.");
+//     initial();
+// });
 
 function initial() {
     Role.create({
@@ -50,6 +50,7 @@ function initial() {
 
     // Create User
     User.create({
+        id: 1,
         username: 'kishore',
         email: 'kishore_ns@krmn.in',
         password: bcrypt.hashSync('qwerty', 8)
@@ -59,6 +60,7 @@ function initial() {
     }).catch(error => console.log("error::", error.message));
 
     User.create({
+        id: 2,
         username: 'manjunath',
         email: 'manjunath@krmn.in',
         password: bcrypt.hashSync('qwerty', 8)
@@ -68,6 +70,7 @@ function initial() {
     }).catch(error => console.log("error::", error.message));
 
     User.create({
+        id: 3,
         username: 'Srikanth',
         email: 'nssrikanth7@gmail.com',
         password: bcrypt.hashSync('qwerty', 8)
