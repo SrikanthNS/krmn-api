@@ -18,6 +18,7 @@ exports.create = (req, res) => {
         description: req.body.description,
         completed: req.body.completed ? req.body.completed : false,
         minutesSpent: req.body.minutesSpent,
+        date: new Date(req.body.date),
         userId: req.userId,
         clientId: req.body.clientId,
         reviewerId: req.body.completed ? req.body.reviewerId : null
@@ -53,17 +54,14 @@ exports.currentUserTasks = (req, res) => {
 
 // Retrieve all tasks from the database.
 exports.findAll = async (req, res) => {
-    console.log("🚀 ~ file: task.controller.js ~ line 57 ~ req.userId", req.userId)
     const isAdminUser = await isAdmin(req.userId);
 
     const description = req.query.description;
     let condition = description ? { description: { [Op.like]: `%${description}%` } } : null;
-    console.log("🚀 ~ file: task.controller.js ~ line 61 ~ isAdminUser", isAdminUser)
 
     if (!isAdminUser) {
         condition = { userId: req.userId, ...condition }
     }
-    console.log("🚀 ~ file: task.controller.js ~ line 64 ~ condition", condition)
 
     Task.findAll({ where: condition })
         .then(data => {
