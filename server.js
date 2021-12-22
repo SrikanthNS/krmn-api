@@ -127,7 +127,7 @@ app.get('*', function (req, res) {
     })
 });
 // set port, listen for requests
-const PORT = process.env.NODE_LOCAL_PORT || 3000;
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}.`);
 });
