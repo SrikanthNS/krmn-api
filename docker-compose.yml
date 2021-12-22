@@ -34,17 +34,17 @@ services:
       - backend
       - frontend
 
-  # ui:
-  #   depends_on:
-  #     - api
-  #   build:
-  #     context: ./krmn-ui
-  #     args:
-  #       - REACT_APP_API_BASE_URL=$CLIENT_API_BASE_URL
-  #   ports:
-  #     - $REACT_LOCAL_PORT:$REACT_DOCKER_PORT
-  #   networks:
-  #     - frontend
+  ui:
+    depends_on:
+      - api
+    build:
+      context: ./krmn-ui
+      args:
+        - REACT_APP_API_BASE_URL=$CLIENT_API_BASE_URL
+    ports:
+      - $REACT_LOCAL_PORT:$REACT_DOCKER_PORT
+    networks:
+      - frontend
 
 volumes:
   db:

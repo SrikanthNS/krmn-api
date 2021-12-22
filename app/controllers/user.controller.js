@@ -43,3 +43,17 @@ exports.findAllReviewers = (_req, res) => {
         });
     });
 }
+
+
+exports.findAllUsers = (_req, res) => {
+
+    User.findAll({ include: [{ model: Role, attributes: ['id'] }], attributes: ['id', 'username'] })
+        .then(users => {
+            res.send(users);
+        }).catch(err => {
+            res.status(500).send({
+                message:
+                    err.message || "Some error occurred while retrieving user list."
+            });
+        });
+}

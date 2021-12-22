@@ -13,6 +13,8 @@ module.exports = function (app) {
     app.get("/api/users", controller.allAccess);
     app.get("/api/all", controller.allAccess);
     app.get("/api/reviewer", controller.findAllReviewers);
+    app.get("/api/userList", controller.findAllUsers);
+
 
     app.get(
         "/api/user",
