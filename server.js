@@ -29,7 +29,7 @@ const Client = db.client;
 db.sequelize.sync({ force: false })
 // db.sequelize.sync({ force: true }).then(() => {
 //     console.log("Drop and re-sync db.");
-//     initial();
+//     // initial();
 // });
 
 function initial() {

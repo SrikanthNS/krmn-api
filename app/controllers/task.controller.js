@@ -21,7 +21,8 @@ exports.create = (req, res) => {
         date: new Date(req.body.date),
         userId: req.userId,
         clientId: req.body.clientId,
-        reviewerId: req.body.completed ? req.body.reviewerId : null
+        reviewerId: req.body.completed ? req.body.reviewerId : null,
+        taskType: req.body.taskType ? req.body.taskType : ""
     };
 
     // Save Task in the database
@@ -40,7 +41,7 @@ exports.create = (req, res) => {
 
 // Retrieve current User Tasks from the database.
 exports.currentUserTasks = (req, res) => {
-    Task.findAll({ where: { userId: req.userId } })
+    Task.findAll({ where: { userId: req.userId }, order: [['date', 'DESC'], ['createdAt', 'DESC']] })
         .then(data => {
             res.send(data);
         })
@@ -55,7 +56,6 @@ exports.currentUserTasks = (req, res) => {
 // Retrieve all tasks from the database.
 exports.findAll = async (req, res) => {
     const isAdminUser = await isAdmin(req.userId);
-
     const description = req.query.description;
     let condition = description ? { description: { [Op.like]: `%${description}%` } } : null;
 
@@ -63,7 +63,10 @@ exports.findAll = async (req, res) => {
         condition = { userId: req.userId, ...condition }
     }
 
-    Task.findAll({ where: condition })
+    Task.findAll({
+        where: condition,
+        order: [['date', 'DESC'], ['createdAt', 'DESC']]
+    })
         .then(data => {
             res.send(data);
         })
@@ -73,6 +76,8 @@ exports.findAll = async (req, res) => {
                     err.message || "Some error occurred while retrieving tasks."
             });
         });
+
+
 };
 
 
@@ -100,7 +105,6 @@ exports.findOne = (req, res) => {
 // Update a Task by the id in the request
 exports.update = (req, res) => {
     const id = req.params.id;
-
     Task.update(req.body, {
         where: { id: id }
     })

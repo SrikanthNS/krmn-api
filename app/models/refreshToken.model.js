@@ -15,9 +15,7 @@ module.exports = (sequelize, Sequelize) => {
         let expiredAt = new Date();
 
         expiredAt.setSeconds(expiredAt.getSeconds() + config.jwtRefreshExpiration);
-
         let _token = uuidv4();
-
         let refreshToken = await this.create({
             token: _token,
             userId: user.id,
