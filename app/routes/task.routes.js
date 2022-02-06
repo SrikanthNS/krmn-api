@@ -2,6 +2,7 @@ const { authJwt } = require("../middleware");
 
 module.exports = app => {
     const task = require("../controllers/task.controller.js");
+    const excel = require("../controllers/excel.controller");
 
     var router = require("express").Router();
 
@@ -10,6 +11,9 @@ module.exports = app => {
 
     // Retrieve all task
     router.get("/", [authJwt.verifyToken], task.findAll);
+
+    // Download all tasks
+    router.get("/download", [authJwt.verifyToken], excel.download);
 
     // Retrieve all published task
     router.get("/completed", [authJwt.verifyToken], task.findAllPublished);

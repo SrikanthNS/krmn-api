@@ -27,6 +27,9 @@ const Client = db.client;
 
 
 db.sequelize.sync({ force: false })
+
+
+// Think before you enable below code snippet
 // db.sequelize.sync({ force: true }).then(() => {
 //     console.log("Drop and re-sync db.");
 //     // initial();
