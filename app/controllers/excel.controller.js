@@ -40,7 +40,7 @@ const download = async (req, res) => {
                 minutesSpent: `${task.minutesSpent} mins`,
                 date: task.date,
                 completed: task.completed ? "Completed" : "In-progress",
-                user: userName,
+                ...(isAdminUser && { user: userName }),
                 client: clientName,
                 reviewer: reviewerName
             });
@@ -50,7 +50,7 @@ const download = async (req, res) => {
         let worksheet = workbook.addWorksheet("Tutorials");
         worksheet.columns = [
             { header: "Id", key: "id", width: 5 },
-            { header: "User", key: "user", width: 25 },
+            (isAdminUser && { header: "User", key: "user", width: 25 }),
             { header: "Client", key: "client", width: 10 },
             { header: "Type", key: "taskType", width: 10 },
             { header: "Description", key: "description", width: 25 },
