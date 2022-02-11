@@ -9,7 +9,6 @@ const Op = db.Sequelize.Op;
 const find = require('lodash/find')
 
 const download = async (req, res) => {
-    console.log("🚀 ~ file: task.controller.js ~ line 83 ~ exports.download= ~ download")
     const description = req.query.description;
     let condition = description ? { description: { [Op.like]: `%${description}%` } } : null;
     const isAdminUser = await isAdmin(req.userId);
@@ -27,6 +26,7 @@ const download = async (req, res) => {
 
         // get all client list
         const clients = await Client.findAll({})
+
 
         tasks.forEach((task, index) => {
             const userName = find(users, (user) => user.id == task.userId)?.username || '';
@@ -51,7 +51,7 @@ const download = async (req, res) => {
         worksheet.columns = [
             { header: "Id", key: "id", width: 5 },
             { header: "User", key: "user", width: 25 },
-            { header: "Client", key: "clientI", width: 10 },
+            { header: "Client", key: "client", width: 10 },
             { header: "Type", key: "taskType", width: 10 },
             { header: "Description", key: "description", width: 25 },
             { header: "Date", key: "date", width: 10 },
