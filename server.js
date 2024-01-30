@@ -7,11 +7,12 @@ require("dotenv").config();
 const path = __dirname + "/app/views/";
 const app = express();
 
+app.use(cors());
 app.use(express.static(path));
 
-var corsOptions = {
-  origin: process.env.CLIENT_ORIGIN || "http://localhost:8081",
-};
+// var corsOptions = {
+//   origin: process.env.CLIENT_ORIGIN || "http://localhost:8081",
+// };
 
 // parse requests of content-type - application/json
 app.use(bodyParser.json());
@@ -101,7 +102,6 @@ function initial() {
     name: "Client 3",
   });
 }
-app.use(cors(corsOptions));
 
 // parse requests of content-type - application/json
 app.use(express.json());
