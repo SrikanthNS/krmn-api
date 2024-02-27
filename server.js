@@ -26,9 +26,12 @@ const User = db.user;
 const Client = db.client;
 
 db.sequelize.sync({ force: false });
+// db.sequelize.sync({ force: false, alter: true  }).then(() => {
+//   console.log("DB alter Done.");
+// });
 
 // Think before you enable below code snippet
-// db.sequelize.sync({ force: true }).then(() => {
+// db.sequelize.sync({ force: true,  }).then(() => {
 //     console.log("Drop and re-sync db.");
 //     // initial();
 // });

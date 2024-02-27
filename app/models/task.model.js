@@ -4,6 +4,10 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.STRING,
             defaultValue: ""
         },
+        billingCategory: {
+            type: Sequelize.STRING,
+            defaultValue: ""
+        },
         description: {
             type: Sequelize.STRING
         },

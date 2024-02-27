@@ -12,6 +12,21 @@ exports.create = (req, res) => {
         });
         return;
     }
+
+    if (!req.body.billingCategory) {
+        res.status(400).send({
+            message: "Please choose Task Category!"
+        });
+        return;
+    }
+
+    if (!req.body.taskType) {
+        res.status(400).send({
+            message: "Please choose Task Type!"
+        });
+        return;
+    }
+
     // Create a Task
 
     const task = {
@@ -22,7 +37,8 @@ exports.create = (req, res) => {
         userId: req.userId,
         clientId: req.body.clientId,
         reviewerId: req.body.completed ? req.body.reviewerId : null,
-        taskType: req.body.taskType ? req.body.taskType : ""
+        taskType: req.body.taskType ? req.body.taskType : "",
+        billingCategory: req.body?.billingCategory || ""
     };
 
     // Save Task in the database
@@ -105,6 +121,27 @@ exports.findOne = (req, res) => {
 // Update a Task by the id in the request
 exports.update = (req, res) => {
     const id = req.params.id;
+    if (!req.body.description) {
+        res.status(400).send({
+            message: "Task description can not be empty!"
+        });
+        return;
+    }
+
+    if (!req.body.billingCategory) {
+        res.status(400).send({
+            message: "Please choose Task Category!"
+        });
+        return;
+    }
+
+    if (!req.body.taskType) {
+        res.status(400).send({
+            message: "Please choose Task Type!"
+        });
+        return;
+    }
+
     Task.update(req.body, {
         where: { id: id }
     })
