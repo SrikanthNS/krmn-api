@@ -32,14 +32,14 @@ exports.findAllReviewers = (_req, res) => {
       const filteredUsers = filter(users, (user) => {
         const roleList = filter(
           user.roles,
-          (role) => role.user_roles.roleId > 1
+          (role) => role.user_roles.roleId > 1,
         );
         if (roleList.length) return true;
         return false;
       });
       var reviewers = map(
         filteredUsers,
-        partialRight(pick, ["id", "username"])
+        partialRight(pick, ["id", "username"]),
       );
 
       res.status(200).send(reviewers);
@@ -58,7 +58,7 @@ exports.findAllUsers = (req, res) => {
   User.findAll({
     where: condition,
     include: [{ model: Role, attributes: ["id"] }],
-    attributes: ["id", "username"],
+    attributes: ["id", "username", "isActive"],
   })
     .then((users) => {
       res.send(users);
@@ -93,7 +93,7 @@ exports.findOne = (req, res) => {
     });
 };
 
-// Update a Client by the id in the request
+// Update a User by the id in the request
 exports.update = (req, res) => {
   const id = req.params.id;
 
@@ -103,17 +103,77 @@ exports.update = (req, res) => {
     .then((num) => {
       if (num == 1) {
         res.send({
-          message: "Client was updated successfully.",
+          message: "User was updated successfully.",
         });
       } else {
         res.send({
-          message: `Cannot update Client with id=${id}. Maybe Client was not found or req.body is empty!`,
+          message: `Cannot update User with id=${id}. Maybe User was not found or req.body is empty!`,
         });
       }
     })
     .catch((err) => {
       res.status(500).send({
-        message: "Error updating Client with id=" + id,
+        message: "Error updating User with id=" + id,
+      });
+    });
+};
+
+// Soft delete (deactivate) a User by id
+exports.deactivate = (req, res) => {
+  const id = req.params.id;
+
+  User.update(
+    { isActive: false },
+    {
+      where: { id: id },
+    },
+  )
+    .then((num) => {
+      if (num == 1) {
+        res.send({
+          id: parseInt(id),
+          isActive: false,
+          message: "User was deactivated successfully.",
+        });
+      } else {
+        res.status(404).send({
+          message: `Cannot deactivate User with id=${id}. User not found.`,
+        });
+      }
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "Error deactivating User with id=" + id,
+      });
+    });
+};
+
+// Reactivate a User by id
+exports.activate = (req, res) => {
+  const id = req.params.id;
+
+  User.update(
+    { isActive: true },
+    {
+      where: { id: id },
+    },
+  )
+    .then((num) => {
+      if (num == 1) {
+        res.send({
+          id: parseInt(id),
+          isActive: true,
+          message: "User was activated successfully.",
+        });
+      } else {
+        res.status(404).send({
+          message: `Cannot activate User with id=${id}. User not found.`,
+        });
+      }
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "Error activating User with id=" + id,
       });
     });
 };

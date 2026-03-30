@@ -1,24 +1,25 @@
 const express = require("express");
-const bodyParser = require("body-parser");
 const cors = require("cors");
 var bcrypt = require("bcryptjs");
 require("dotenv").config();
 
-const path = __dirname + "/app/views/";
 const app = express();
 
-app.use(cors());
-app.use(express.static(path));
+// CORS – allow the configured origin or same-origin in production
+const corsOptions = {
+  origin: process.env.CLIENT_ORIGIN || true,
+};
+app.use(cors(corsOptions));
 
-// var corsOptions = {
-//   origin: process.env.CLIENT_ORIGIN || "http://localhost:8081",
-// };
+// Serve the React build from app/views
+const viewsPath = __dirname + "/app/views/";
+app.use(express.static(viewsPath));
 
 // parse requests of content-type - application/json
-app.use(bodyParser.json());
+app.use(express.json());
 
 // parse requests of content-type - application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 
 const db = require("./app/models");
 const Role = db.role;
@@ -31,9 +32,9 @@ db.sequelize.sync({ force: false });
 // });
 
 // Think before you enable below code snippet
-// db.sequelize.sync({ force: true,  }).then(() => {
+// db.sequelize.sync({ force: true }).then(() => {
 //     console.log("Drop and re-sync db.");
-//     // initial();
+//     initial();
 // });
 
 function initial() {
@@ -106,38 +107,26 @@ function initial() {
   });
 }
 
-// parse requests of content-type - application/json
-app.use(express.json());
-
-// parse requests of content-type - application/x-www-form-urlencoded
-app.use(express.urlencoded({ extended: true }));
-
 // Auth routes
 require("./app/routes/auth.routes")(app);
 // User routes
 require("./app/routes/user.routes")(app);
-
-// // Tutorial routes
-// require("./app/routes/tutorial.routes")(app);
 // Task routes
 require("./app/routes/task.routes")(app);
 // Client routes
 require("./app/routes/client.routes")(app);
 
-// Send index.html if no route Matches
+// Send index.html for any non-API route (React SPA)
 app.get("*", function (req, res) {
-  res.sendFile(path + "index.html", function (err) {
+  res.sendFile(viewsPath + "index.html", function (err) {
     if (err) {
       res.status(500).send(err);
     }
   });
 });
+
 // set port, listen for requests
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 6868;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
-  console.log(
-    "🚀 ~ file: server.js:138 ~ app.listen ~ REACT_APP_API_BASE_URL:",
-    process.env.REACT_APP_API_BASE_URL
-  );
 });

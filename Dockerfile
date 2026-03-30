@@ -1,7 +1,7 @@
-FROM node:14
+FROM node:20-slim
 
 WORKDIR /server
 COPY package.json .
-RUN npm install
+RUN npm install --production
 COPY . .
-CMD npm start
+CMD ["node", "server.js"]
