@@ -19,10 +19,20 @@ if (connectionUrl) {
     },
   });
 } else {
+  const dialectOptions = {};
+  // Aiven and other cloud MySQL providers require SSL
+  if (process.env.DB_SSL === "true") {
+    dialectOptions.ssl = {
+      require: true,
+      rejectUnauthorized: false,
+    };
+  }
+
   sequelize = new Sequelize(dbConfig.DB, dbConfig.USER, dbConfig.PASSWORD, {
     host: dbConfig.HOST,
     dialect: dbConfig.dialect,
     port: dbConfig.port,
+    dialectOptions,
     pool: {
       max: dbConfig.pool.max,
       min: dbConfig.pool.min,
