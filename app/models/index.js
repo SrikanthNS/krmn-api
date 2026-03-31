@@ -80,6 +80,7 @@ db.user.hasOne(db.refreshToken, {
 });
 
 db.task.belongsTo(db.user, {
+  as: "owner",
   foreignKey: "userId",
   targetKey: "id",
 });
@@ -88,7 +89,13 @@ db.task.belongsTo(db.client, {
   targetKey: "id",
 });
 db.task.belongsTo(db.user, {
+  as: "reviewer",
   foreignKey: "reviewerId",
+  targetKey: "id",
+});
+db.task.belongsTo(db.user, {
+  as: "assigner",
+  foreignKey: "assignedBy",
   targetKey: "id",
 });
 
