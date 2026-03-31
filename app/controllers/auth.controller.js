@@ -52,6 +52,13 @@ exports.signin = async (req, res) => {
                 return res.status(404).send({ message: "User Not found." });
             }
 
+            if (!user.isActive) {
+                return res.status(403).send({
+                    accessToken: null,
+                    message: "Your account has been deactivated. Please contact an administrator."
+                });
+            }
+
             var passwordIsValid = bcrypt.compareSync(
                 req.body.password,
                 user.password
