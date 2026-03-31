@@ -135,3 +135,35 @@ exports.refreshToken = async (req, res) => {
         return res.status(500).send({ message: err });
     }
 };
+
+exports.changePassword = async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+        return res.status(400).send({ message: "Current password and new password are required." });
+    }
+
+    if (newPassword.length < 6) {
+        return res.status(400).send({ message: "New password must be at least 6 characters." });
+    }
+
+    try {
+        const user = await User.findByPk(req.userId);
+
+        if (!user) {
+            return res.status(404).send({ message: "User not found." });
+        }
+
+        const isMatch = bcrypt.compareSync(currentPassword, user.password);
+        if (!isMatch) {
+            return res.status(401).send({ message: "Current password is incorrect." });
+        }
+
+        user.password = bcrypt.hashSync(newPassword, 8);
+        await user.save();
+
+        res.status(200).send({ message: "Password changed successfully." });
+    } catch (err) {
+        res.status(500).send({ message: err.message });
+    }
+};
