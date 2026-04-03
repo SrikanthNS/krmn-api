@@ -13,8 +13,8 @@ module.exports = (sequelize, Sequelize) => {
     },
     minutesSpent: {
       type: Sequelize.INTEGER,
-      allowNull: false,
-      alias: "time spent in minutes",
+      allowNull: true,
+      defaultValue: null,
     },
     date: {
       type: Sequelize.DATE,
