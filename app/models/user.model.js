@@ -15,6 +15,10 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.BOOLEAN,
       defaultValue: true,
     },
+    itemsPerPage: {
+      type: Sequelize.INTEGER,
+      defaultValue: 20,
+    },
   });
 
   return User;

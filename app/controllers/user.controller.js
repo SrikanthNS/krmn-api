@@ -177,3 +177,40 @@ exports.activate = (req, res) => {
       });
     });
 };
+
+// Update user preferences
+exports.updatePreferences = (req, res) => {
+  const id = req.userId;
+  const { itemsPerPage } = req.body;
+
+  const ALLOWED_PAGE_SIZES = [10, 20, 50, 100];
+  if (
+    itemsPerPage !== undefined &&
+    !ALLOWED_PAGE_SIZES.includes(itemsPerPage)
+  ) {
+    return res.status(400).send({
+      message: `itemsPerPage must be one of: ${ALLOWED_PAGE_SIZES.join(", ")}`,
+    });
+  }
+
+  const updates = {};
+  if (itemsPerPage !== undefined) updates.itemsPerPage = itemsPerPage;
+
+  if (Object.keys(updates).length === 0) {
+    return res.status(400).send({ message: "No valid preferences provided." });
+  }
+
+  User.update(updates, { where: { id } })
+    .then((num) => {
+      if (num == 1) {
+        res.send({ ...updates, message: "Preferences updated successfully." });
+      } else {
+        res.status(404).send({ message: "User not found." });
+      }
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message: "Error updating preferences.",
+      });
+    });
+};

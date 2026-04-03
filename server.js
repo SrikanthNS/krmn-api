@@ -25,8 +25,19 @@ const db = require("./app/models");
 const Role = db.role;
 const User = db.user;
 const Client = db.client;
+const FeatureFlag = db.featureFlag;
 
-db.sequelize.sync({ force: false });
+db.sequelize.sync({ force: false }).then(() => {
+  // Seed feature flags if they don't exist
+  FeatureFlag.findOrCreate({
+    where: { key: "user_preferences" },
+    defaults: {
+      key: "user_preferences",
+      enabled: false,
+      description: "Allow users to set preferences like items per page",
+    },
+  });
+});
 // db.sequelize.sync({ force: false, alter: true  }).then(() => {
 //   console.log("DB alter Done.");
 // });
@@ -115,6 +126,8 @@ require("./app/routes/user.routes")(app);
 require("./app/routes/task.routes")(app);
 // Client routes
 require("./app/routes/client.routes")(app);
+// Feature flag routes
+require("./app/routes/featureFlag.routes")(app);
 
 // Send index.html for any non-API route (React SPA)
 app.get("*", function (req, res) {

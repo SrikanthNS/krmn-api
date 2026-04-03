@@ -14,6 +14,12 @@ module.exports = function (app) {
   app.get("/api/all", user.allAccess);
   app.get("/api/reviewer", user.findAllReviewers);
   app.get("/api/userList", user.findAllUsers);
+  // Update user preferences (must be before :id routes)
+  app.put(
+    "/api/users/preferences",
+    [authJwt.verifyToken],
+    user.updatePreferences,
+  );
   // Retrieve a single User with id
   app.get("/api/users/:id", [authJwt.verifyToken], user.findOne);
   // Update a User with id

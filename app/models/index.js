@@ -56,6 +56,10 @@ db.refreshToken = require("../models/refreshToken.model.js")(
   Sequelize,
 );
 db.client = require("../models/client.model.js")(sequelize, Sequelize);
+db.featureFlag = require("../models/featureFlag.model.js")(
+  sequelize,
+  Sequelize,
+);
 
 db.role.belongsToMany(db.user, {
   through: db.userRoles,
