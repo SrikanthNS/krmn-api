@@ -99,6 +99,13 @@ exports.signin = async (req, res) => {
         email: user.email,
         roles: authorities,
         itemsPerPage: user.itemsPerPage || 20,
+        darkModeSettings: (() => {
+          try {
+            return JSON.parse(user.darkModeSettings);
+          } catch {
+            return { mode: "off", customFrom: "20:00", customTo: "06:00" };
+          }
+        })(),
         featureFlags,
         accessToken: token,
         refreshToken: refreshToken,

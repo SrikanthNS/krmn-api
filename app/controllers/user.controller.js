@@ -196,7 +196,7 @@ exports.activate = (req, res) => {
 // Update user preferences
 exports.updatePreferences = (req, res) => {
   const id = req.userId;
-  const { itemsPerPage } = req.body;
+  const { itemsPerPage, darkModeSettings } = req.body;
 
   const ALLOWED_PAGE_SIZES = [10, 20, 50, 100];
   if (
@@ -208,8 +208,20 @@ exports.updatePreferences = (req, res) => {
     });
   }
 
+  if (darkModeSettings !== undefined) {
+    const ALLOWED_MODES = ["off", "on", "sunset_sunrise", "custom"];
+    if (
+      !darkModeSettings.mode ||
+      !ALLOWED_MODES.includes(darkModeSettings.mode)
+    ) {
+      return res.status(400).send({ message: "Invalid dark mode setting." });
+    }
+  }
+
   const updates = {};
   if (itemsPerPage !== undefined) updates.itemsPerPage = itemsPerPage;
+  if (darkModeSettings !== undefined)
+    updates.darkModeSettings = JSON.stringify(darkModeSettings);
 
   if (Object.keys(updates).length === 0) {
     return res.status(400).send({ message: "No valid preferences provided." });

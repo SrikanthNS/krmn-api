@@ -59,6 +59,14 @@ db.sequelize.sync({ force: false }).then(() => {
       description: "Allow users to set preferences like items per page",
     },
   });
+  FeatureFlag.findOrCreate({
+    where: { key: "dark_mode" },
+    defaults: {
+      key: "dark_mode",
+      enabled: false,
+      description: "Allow users to switch between light and dark themes",
+    },
+  });
 });
 // db.sequelize.sync({ force: false, alter: true  }).then(() => {
 //   console.log("DB alter Done.");

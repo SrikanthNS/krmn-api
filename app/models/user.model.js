@@ -19,6 +19,14 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.INTEGER,
       defaultValue: 20,
     },
+    darkModeSettings: {
+      type: Sequelize.STRING,
+      defaultValue: JSON.stringify({
+        mode: "off",
+        customFrom: "20:00",
+        customTo: "06:00",
+      }),
+    },
   });
 
   return User;
