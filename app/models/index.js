@@ -103,5 +103,5 @@ db.task.belongsTo(db.user, {
   targetKey: "id",
 });
 
-db.ROLES = ["user", "admin", "moderator"];
+db.ROLES = ["user", "admin", "moderator", "superadmin"];
 module.exports = db;

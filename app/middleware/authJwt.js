@@ -92,10 +92,28 @@ isModeratorOrAdmin = (req, res, next) => {
     });
 };
 
+isSuperAdmin = (req, res, next) => {
+  User.findByPk(req.userId, { include: [Role] })
+    .then((user) => {
+      if (!user) {
+        return res.status(403).send({ message: "User not found!" });
+      }
+      const roles = user.roles || [];
+      if (roles.some((r) => r.name === "superadmin")) {
+        return next();
+      }
+      res.status(403).send({ message: "Require Super Admin Role!" });
+    })
+    .catch(() => {
+      res.status(500).send({ message: "Unable to validate user role!" });
+    });
+};
+
 const authJwt = {
   verifyToken: verifyToken,
   isAdmin: isAdmin,
   isModerator: isModerator,
   isModeratorOrAdmin: isModeratorOrAdmin,
+  isSuperAdmin: isSuperAdmin,
 };
 module.exports = authJwt;

@@ -13,10 +13,10 @@ module.exports = function (app) {
   // Get all feature flags (any authenticated user)
   app.get("/api/feature-flags", [authJwt.verifyToken], featureFlag.findAll);
 
-  // Toggle a feature flag (admin only)
+  // Toggle a feature flag (super admin only)
   app.put(
     "/api/feature-flags/:key",
-    [authJwt.verifyToken, authJwt.isAdmin],
+    [authJwt.verifyToken, authJwt.isSuperAdmin],
     featureFlag.toggle,
   );
 };

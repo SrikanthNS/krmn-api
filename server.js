@@ -86,6 +86,11 @@ function initial() {
     name: "admin",
   });
 
+  Role.create({
+    id: 4,
+    name: "superadmin",
+  });
+
   // Create User
   User.create({
     id: 1,
