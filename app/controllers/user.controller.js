@@ -75,10 +75,13 @@ exports.findAllUsers = (req, res) => {
 exports.findOne = (req, res) => {
   const id = req.params.id;
 
-  User.findByPk(id)
+  User.findByPk(id, {
+    include: [
+      { model: Role, attributes: ["id", "name"], through: { attributes: [] } },
+    ],
+  })
     .then((data) => {
       if (data) {
-        console.log("🚀 ~ file: user.controller.js:78 ~ .then ~ data:", data);
         res.send(data);
       } else {
         res.status(404).send({
@@ -96,12 +99,24 @@ exports.findOne = (req, res) => {
 // Update a User by the id in the request
 exports.update = (req, res) => {
   const id = req.params.id;
+  const { roles, ...userData } = req.body;
 
-  User.update(req.body, {
+  User.update(userData, {
     where: { id: id },
   })
     .then((num) => {
       if (num == 1) {
+        if (roles && Array.isArray(roles)) {
+          return User.findByPk(id).then((user) => {
+            return Role.findAll({
+              where: { name: { [db.Sequelize.Op.or]: roles } },
+            }).then((foundRoles) => {
+              return user.setRoles(foundRoles).then(() => {
+                res.send({ message: "User was updated successfully." });
+              });
+            });
+          });
+        }
         res.send({
           message: "User was updated successfully.",
         });
