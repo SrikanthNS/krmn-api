@@ -43,21 +43,17 @@ exports.create = async (req, res) => {
   // Admin/Mod can assign to another user
   let assignedUserId = req.userId;
   const bodyUserId = safeInt(req.body.userId);
-  console.log("[task.create] DEBUG: req.body.userId =", JSON.stringify(req.body.userId), "| bodyUserId =", bodyUserId, "| req.userId =", req.userId);
   if (bodyUserId) {
     const canAssign = await isAdminOrMod(req.userId);
-    console.log("[task.create] DEBUG: canAssign =", canAssign);
     if (canAssign) {
       assignedUserId = bodyUserId;
     }
   }
-  console.log("[task.create] DEBUG: final assignedUserId =", assignedUserId);
 
   // If admin assigned to someone else, record who assigned it
   const wasAssigned =
     safeInt(assignedUserId) !== null &&
     safeInt(assignedUserId) !== safeInt(req.userId);
-  console.log("[task.create] DEBUG: wasAssigned =", wasAssigned);
 
   const task = {
     description: req.body.description,

@@ -10,10 +10,10 @@ module.exports = function (app) {
     next();
   });
 
-  app.get("/api/users", user.allAccess);
+  app.get("/api/users", [authJwt.verifyToken], user.allAccess);
   app.get("/api/all", user.allAccess);
-  app.get("/api/reviewer", user.findAllReviewers);
-  app.get("/api/userList", user.findAllUsers);
+  app.get("/api/reviewer", [authJwt.verifyToken], user.findAllReviewers);
+  app.get("/api/userList", [authJwt.verifyToken], user.findAllUsers);
   // Update user preferences (must be before :id routes)
   app.put(
     "/api/users/preferences",

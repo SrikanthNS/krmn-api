@@ -1,15 +1,37 @@
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 var bcrypt = require("bcryptjs");
-require("dotenv").config();
+require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 const app = express();
 
-// CORS – allow the configured origin or same-origin in production
+// Security headers
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // Disabled for SPA serving
+  }),
+);
+
+// CORS – allow the configured origin; restrict in production
 const corsOptions = {
-  origin: process.env.CLIENT_ORIGIN || true,
+  origin:
+    process.env.NODE_ENV === "production"
+      ? process.env.CLIENT_ORIGIN || false
+      : true,
 };
 app.use(cors(corsOptions));
+
+// Rate limiting on auth endpoints
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // 20 attempts per window
+  message: { message: "Too many requests, please try again later." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Serve the React build from app/views
 const viewsPath = __dirname + "/app/views/";
@@ -119,7 +141,7 @@ function initial() {
 }
 
 // Auth routes
-require("./app/routes/auth.routes")(app);
+require("./app/routes/auth.routes")(app, authLimiter);
 // User routes
 require("./app/routes/user.routes")(app);
 // Task routes
@@ -128,6 +150,11 @@ require("./app/routes/task.routes")(app);
 require("./app/routes/client.routes")(app);
 // Feature flag routes
 require("./app/routes/featureFlag.routes")(app);
+
+// Health check
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", uptime: process.uptime() });
+});
 
 // Send index.html for any non-API route (React SPA)
 app.get("*", function (req, res) {
@@ -138,8 +165,30 @@ app.get("*", function (req, res) {
   });
 });
 
+// Centralized error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(err.status || 500).json({
+    message:
+      process.env.NODE_ENV === "production"
+        ? "Internal server error"
+        : err.message,
+  });
+});
+
 // set port, listen for requests
 const PORT = process.env.PORT || 6868;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}.`);
 });
+
+// Graceful shutdown
+const shutdown = () => {
+  console.log("Shutting down gracefully...");
+  server.close(() => {
+    db.sequelize.close().then(() => process.exit(0));
+  });
+  setTimeout(() => process.exit(1), 10000);
+};
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
