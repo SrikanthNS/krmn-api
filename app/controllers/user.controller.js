@@ -54,14 +54,26 @@ exports.findAllReviewers = (_req, res) => {
 
 exports.findAllUsers = (req, res) => {
   const name = req.query.name;
+  const page = parseInt(req.query.page) || 1;
+  const rawSize = parseInt(req.query.size);
+  const size = rawSize === 0 ? null : Math.min(rawSize || 20, 100);
   let condition = name ? { username: { [Op.like]: `%${name}%` } } : null;
-  User.findAll({
+  const offset = size ? (page - 1) * size : undefined;
+
+  User.findAndCountAll({
     where: condition,
     include: [{ model: Role, attributes: ["id"] }],
     attributes: ["id", "username", "isActive"],
+    ...(size && { limit: size, offset }),
+    distinct: true,
   })
-    .then((users) => {
-      res.send(users);
+    .then(({ count, rows }) => {
+      res.send({
+        rows,
+        totalItems: count,
+        totalPages: size ? Math.ceil(count / size) : 1,
+        currentPage: page,
+      });
     })
     .catch((err) => {
       res.status(500).send({

@@ -104,36 +104,97 @@ exports.currentUserTasks = (req, res) => {
 exports.findAll = async (req, res) => {
   const isAdminUser = await isAdmin(req.userId);
   const description = req.query.description;
-  let condition = description
-    ? { description: { [Op.like]: `%${description}%` } }
-    : null;
+  const page = parseInt(req.query.page) || 1;
+  const size = Math.min(parseInt(req.query.size) || 20, 100);
+  const sortField = req.query.sortField || "date";
+  const sortDir = req.query.sortDir === "asc" ? "ASC" : "DESC";
 
-  if (!isAdminUser) {
-    condition = { userId: req.userId, ...condition };
+  // Filters
+  const status = req.query.status; // comma-separated
+  const clientId = req.query.clientId; // comma-separated
+  const userId = req.query.userId; // comma-separated
+  const reviewerId = req.query.reviewerId; // comma-separated
+  const taskType = req.query.taskType; // comma-separated
+  const billingCategory = req.query.billingCategory; // comma-separated
+  const dateFrom = req.query.dateFrom;
+  const dateTo = req.query.dateTo;
+
+  let condition = {};
+  if (description) condition.description = { [Op.like]: `%${description}%` };
+  if (!isAdminUser) condition.userId = req.userId;
+  if (status) {
+    const statuses = status.split(",");
+    condition.status = { [Op.in]: statuses };
+  }
+  if (clientId) condition.clientId = { [Op.in]: clientId.split(",") };
+  if (userId && isAdminUser) condition.userId = { [Op.in]: userId.split(",") };
+  if (reviewerId) condition.reviewerId = { [Op.in]: reviewerId.split(",") };
+  if (taskType) condition.taskType = { [Op.in]: taskType.split(",") };
+  if (billingCategory)
+    condition.billingCategory = { [Op.in]: billingCategory.split(",") };
+  if (dateFrom || dateTo) {
+    condition.date = {};
+    if (dateFrom) condition.date[Op.gte] = dateFrom;
+    if (dateTo) condition.date[Op.lte] = dateTo + " 23:59:59";
   }
 
-  Task.findAll({
-    where: condition,
-    include: [
-      {
-        model: db.user,
-        as: "assigner",
-        attributes: ["id", "username"],
-      },
-    ],
-    order: [
-      ["date", "DESC"],
-      ["createdAt", "DESC"],
-    ],
-  })
-    .then((data) => {
-      res.send(data);
-    })
-    .catch((err) => {
-      res.status(500).send({
-        message: err.message || "Some error occurred while retrieving tasks.",
-      });
+  // Allowed sort fields
+  const allowedSorts = {
+    date: "date",
+    time: "minutesSpent",
+    minutesSpent: "minutesSpent",
+    type: "taskType",
+    taskType: "taskType",
+    client: "clientId",
+    clientId: "clientId",
+    createdAt: "createdAt",
+  };
+  const orderCol = allowedSorts[sortField] || "date";
+
+  const offset = (page - 1) * size;
+
+  try {
+    const { count, rows } = await Task.findAndCountAll({
+      where: condition,
+      include: [
+        {
+          model: db.user,
+          as: "assigner",
+          attributes: ["id", "username"],
+        },
+      ],
+      order: [
+        [orderCol, sortDir],
+        ["createdAt", "DESC"],
+      ],
+      limit: size,
+      offset,
     });
+
+    // Status counts (unfiltered for this user)
+    const countCondition = !isAdminUser ? { userId: req.userId } : {};
+    const allForCounts = await Task.findAll({
+      where: countCondition,
+      attributes: ["status", "completed"],
+    });
+    const statusCounts = { todo: 0, "in-progress": 0, completed: 0 };
+    allForCounts.forEach((t) => {
+      const s = t.status || (t.completed ? "completed" : "in-progress");
+      if (statusCounts[s] !== undefined) statusCounts[s]++;
+    });
+
+    res.send({
+      rows,
+      totalItems: count,
+      totalPages: Math.ceil(count / size),
+      currentPage: page,
+      statusCounts,
+    });
+  } catch (err) {
+    res.status(500).send({
+      message: err.message || "Some error occurred while retrieving tasks.",
+    });
+  }
 };
 
 // Find a single Task with an id
