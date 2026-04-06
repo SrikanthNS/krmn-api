@@ -171,8 +171,9 @@ exports.findAll = async (req, res) => {
       offset,
     });
 
-    // Status counts (unfiltered for this user)
-    const countCondition = !isAdminUser ? { userId: req.userId } : {};
+    // Status counts (with all non-status filters applied)
+    const countCondition = { ...condition };
+    delete countCondition.status;
     const allForCounts = await Task.findAll({
       where: countCondition,
       attributes: ["status", "completed"],
