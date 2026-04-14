@@ -109,9 +109,27 @@ isSuperAdmin = (req, res, next) => {
     });
 };
 
+isAdminOrAbove = (req, res, next) => {
+  User.findByPk(req.userId, { include: [Role] })
+    .then((user) => {
+      if (!user) {
+        return res.status(403).send({ message: "User not found!" });
+      }
+      const roles = user.roles || [];
+      if (roles.some((r) => r.name === "admin" || r.name === "superadmin")) {
+        return next();
+      }
+      res.status(403).send({ message: "Require Admin Role!" });
+    })
+    .catch(() => {
+      res.status(500).send({ message: "Unable to validate user role!" });
+    });
+};
+
 const authJwt = {
   verifyToken: verifyToken,
   isAdmin: isAdmin,
+  isAdminOrAbove: isAdminOrAbove,
   isModerator: isModerator,
   isModeratorOrAdmin: isModeratorOrAdmin,
   isSuperAdmin: isSuperAdmin,

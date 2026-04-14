@@ -67,6 +67,24 @@ db.sequelize.sync({ force: false }).then(() => {
       description: "Allow users to switch between light and dark themes",
     },
   });
+  FeatureFlag.findOrCreate({
+    where: { key: "ai_agent" },
+    defaults: {
+      key: "ai_agent",
+      enabled: false,
+      description:
+        "Enable KAI — KRMN AI assistant for natural language interactions",
+    },
+  });
+  FeatureFlag.findOrCreate({
+    where: { key: "visualization" },
+    defaults: {
+      key: "visualization",
+      enabled: false,
+      description:
+        "Enable performance dashboards and analytics (Admin & above only)",
+    },
+  });
 });
 // db.sequelize.sync({ force: false, alter: true  }).then(() => {
 //   console.log("DB alter Done.");
@@ -163,6 +181,10 @@ require("./app/routes/task.routes")(app);
 require("./app/routes/client.routes")(app);
 // Feature flag routes
 require("./app/routes/featureFlag.routes")(app);
+// Agent routes
+require("./app/routes/agent.routes")(app);
+// Analytics routes
+require("./app/routes/analytics.routes")(app);
 
 // Health check
 app.get("/api/health", (req, res) => {
