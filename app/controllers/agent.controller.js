@@ -365,19 +365,22 @@ async function executeCreateTask(params, userId) {
   if (!params.description) {
     return {
       message:
-        'Please provide a task description. Example: create task "Review Q1 reports" type Audit category Billable',
+        'What should the task description be?',
+      pendingContext: { tool: "create_task", params, nextField: "description" },
     };
   }
   if (!params.taskType) {
     return {
       message:
-        'Please specify a task type. Example: create task "Review docs" type Audit category Billable',
+        'What type of task is this? (Income Tax, GST, MCA, FEMA, DGFT, Others)',
+      pendingContext: { tool: "create_task", params, nextField: "taskType" },
     };
   }
   if (!params.billingCategory) {
     return {
       message:
-        'Please specify a billing category. Example: create task "Review docs" type Audit category Billable',
+        'What billing category? (Billable, Non-Billable, Retainer)',
+      pendingContext: { tool: "create_task", params, nextField: "billingCategory" },
     };
   }
 
@@ -568,8 +571,8 @@ async function executeListClients(params) {
 async function executeCreateClient(params) {
   if (!params.name) {
     return {
-      message:
-        "Please provide a client name. Example: add client named 'Acme Corp'",
+      message: "What should the client name be?",
+      pendingContext: { tool: "create_client", params, nextField: "name" },
     };
   }
   const client = await Client.create({ name: params.name });
@@ -635,7 +638,7 @@ async function executeMyProfile(userId) {
 
 // ── Main chat endpoint ──
 exports.chat = async (req, res) => {
-  const { message } = req.body;
+const { message, context } = req.body;
 
   if (!message || typeof message !== "string" || message.trim().length === 0) {
     return res.status(400).send({ message: "Please provide a message." });
@@ -651,7 +654,15 @@ exports.chat = async (req, res) => {
   const userId = req.userId;
 
   try {
-    const { tool, params } = recognizeIntent(message.trim());
+    let { tool, params } = recognizeIntent(message.trim());
+
+    // Multi-turn: if intent not recognized but we have pending context,
+    // treat the message as the value for the next missing field
+    if (tool === "unknown" && context && context.tool && context.nextField) {
+      tool = context.tool;
+      params = { ...context.params };
+      params[context.nextField] = message.trim().replace(/^["']|["']$/g, "");
+    }
 
     let result;
     switch (tool) {
