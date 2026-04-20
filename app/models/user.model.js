@@ -27,6 +27,10 @@ module.exports = (sequelize, Sequelize) => {
         customTo: "06:00",
       }),
     },
+    recentTaskLimit: {
+      type: Sequelize.INTEGER,
+      defaultValue: 5,
+    },
   });
 
   return User;

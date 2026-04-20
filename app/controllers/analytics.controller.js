@@ -183,7 +183,7 @@ exports.staffPerformance = async (req, res) => {
         ],
       ],
       include: [{ model: User, as: "owner", attributes: ["id", "username"] }],
-      group: ["userId", "owner.id"],
+      group: ["userId", "owner.id", "owner.username"],
       order: [[Sequelize.col("taskCount"), "DESC"]],
       raw: false,
     });
@@ -268,7 +268,7 @@ exports.clientDelivery = async (req, res) => {
         ],
       ],
       include: [{ model: Client, attributes: ["id", "name"] }],
-      group: ["clientId", "client.id"],
+      group: ["clientId", "client.id", "client.name"],
       order: [[Sequelize.col("taskCount"), "DESC"]],
       raw: false,
     });
@@ -335,6 +335,225 @@ exports.clientDelivery = async (req, res) => {
     console.error("Client delivery error:", err);
     res.status(500).send({
       message: err.message || "Error retrieving client delivery data.",
+    });
+  }
+};
+
+// ── 4. My Performance (for any logged-in user) ──
+// Returns the current user's own task counts, minutes, status breakdown, and daily trend
+exports.myPerformance = async (req, res) => {
+  const userId = req.userId;
+  const { dateFrom, dateTo, groupBy = "day" } = req.query;
+  const dateCondition = buildDateCondition(dateFrom, dateTo);
+
+  try {
+    const groupExpressions = {
+      day: [Sequelize.fn("DATE", Sequelize.col("date")), "period"],
+      week: [
+        Sequelize.fn("DATE_FORMAT", Sequelize.col("date"), "%x-W%v"),
+        "period",
+      ],
+      month: [
+        Sequelize.fn("DATE_FORMAT", Sequelize.col("date"), "%Y-%m"),
+        "period",
+      ],
+    };
+    const groupExpr = groupExpressions[groupBy] || groupExpressions.day;
+
+    // Tasks over time for this user
+    const tasksOverTime = await Task.findAll({
+      where: { ...dateCondition, userId },
+      attributes: [
+        groupExpr,
+        [Sequelize.fn("COUNT", Sequelize.col("id")), "taskCount"],
+        [
+          Sequelize.fn(
+            "COALESCE",
+            Sequelize.fn("SUM", Sequelize.col("minutesSpent")),
+            0,
+          ),
+          "totalMinutes",
+        ],
+      ],
+      group: ["period"],
+      order: [[Sequelize.col("period"), "ASC"]],
+      raw: true,
+    });
+
+    // Status breakdown for this user
+    const statusBreakdown = await Task.findAll({
+      where: { ...dateCondition, userId },
+      attributes: [
+        "status",
+        [Sequelize.fn("COUNT", Sequelize.col("id")), "count"],
+      ],
+      group: ["status"],
+      raw: true,
+    });
+
+    // Category breakdown for this user
+    const categoryBreakdown = await Task.findAll({
+      where: { ...dateCondition, userId, billingCategory: { [Op.ne]: "" } },
+      attributes: [
+        "billingCategory",
+        [Sequelize.fn("COUNT", Sequelize.col("id")), "count"],
+        [
+          Sequelize.fn(
+            "COALESCE",
+            Sequelize.fn("SUM", Sequelize.col("minutesSpent")),
+            0,
+          ),
+          "totalMinutes",
+        ],
+      ],
+      group: ["billingCategory"],
+      order: [[Sequelize.col("count"), "DESC"]],
+      raw: true,
+    });
+
+    // Overall totals for this user
+    const totals = await Task.findOne({
+      where: { ...dateCondition, userId },
+      attributes: [
+        [Sequelize.fn("COUNT", Sequelize.col("id")), "totalTasks"],
+        [
+          Sequelize.fn(
+            "COALESCE",
+            Sequelize.fn("SUM", Sequelize.col("minutesSpent")),
+            0,
+          ),
+          "totalMinutes",
+        ],
+      ],
+      raw: true,
+    });
+
+    res.send({
+      tasksOverTime,
+      statusBreakdown,
+      categoryBreakdown,
+      totals: {
+        totalTasks: Number(totals.totalTasks),
+        totalMinutes: Number(totals.totalMinutes),
+      },
+    });
+  } catch (err) {
+    console.error("My performance error:", err);
+    res.status(500).send({
+      message: err.message || "Error retrieving your performance data.",
+    });
+  }
+};
+
+// ── 5. My Client Delivery (for any logged-in user) ──
+// Returns per-client task counts for only the current user's tasks
+exports.myClientDelivery = async (req, res) => {
+  const userId = req.userId;
+  const { dateFrom, dateTo, clientId } = req.query;
+  const dateCondition = buildDateCondition(dateFrom, dateTo);
+
+  try {
+    const clientCondition = clientId ? { clientId } : {};
+
+    const clientStats = await Task.findAll({
+      where: {
+        ...dateCondition,
+        ...clientCondition,
+        userId,
+        clientId: { [Op.ne]: null },
+      },
+      attributes: [
+        "clientId",
+        [Sequelize.fn("COUNT", Sequelize.col("task.id")), "taskCount"],
+        [
+          Sequelize.fn(
+            "COALESCE",
+            Sequelize.fn("SUM", Sequelize.col("minutesSpent")),
+            0,
+          ),
+          "totalMinutes",
+        ],
+        [
+          Sequelize.fn(
+            "SUM",
+            Sequelize.literal(
+              "CASE WHEN task.status = 'completed' THEN 1 ELSE 0 END",
+            ),
+          ),
+          "completedCount",
+        ],
+      ],
+      include: [{ model: Client, attributes: ["id", "name"] }],
+      group: ["clientId", "client.id", "client.name"],
+      order: [[Sequelize.col("taskCount"), "DESC"]],
+      raw: false,
+    });
+
+    let monthlyTrend = [];
+    if (clientId) {
+      monthlyTrend = await Task.findAll({
+        where: { ...dateCondition, clientId, userId },
+        attributes: [
+          [
+            Sequelize.fn("DATE_FORMAT", Sequelize.col("date"), "%Y-%m"),
+            "period",
+          ],
+          [Sequelize.fn("COUNT", Sequelize.col("id")), "taskCount"],
+          [
+            Sequelize.fn(
+              "COALESCE",
+              Sequelize.fn("SUM", Sequelize.col("minutesSpent")),
+              0,
+            ),
+            "totalMinutes",
+          ],
+        ],
+        group: ["period"],
+        order: [[Sequelize.col("period"), "ASC"]],
+        raw: true,
+      });
+    }
+
+    let taskTypeBreakdown = [];
+    if (clientId) {
+      taskTypeBreakdown = await Task.findAll({
+        where: {
+          ...dateCondition,
+          clientId,
+          userId,
+          taskType: { [Op.ne]: "" },
+        },
+        attributes: [
+          "taskType",
+          [Sequelize.fn("COUNT", Sequelize.col("id")), "count"],
+          [
+            Sequelize.fn(
+              "COALESCE",
+              Sequelize.fn("SUM", Sequelize.col("minutesSpent")),
+              0,
+            ),
+            "totalMinutes",
+          ],
+        ],
+        group: ["taskType"],
+        order: [[Sequelize.col("count"), "DESC"]],
+        raw: true,
+      });
+    }
+
+    const result = clientStats.map((s) => ({
+      clientId: s.clientId,
+      clientName: s.client?.name || "Unknown",
+      taskCount: Number(s.dataValues.taskCount),
+      totalMinutes: Number(s.dataValues.totalMinutes),
+      completedCount: Number(s.dataValues.completedCount),
+    }));
+
+    res.send({ clients: result, monthlyTrend, taskTypeBreakdown });
+  } catch (err) {
+    console.error("My client delivery error:", err);
+    res.status(500).send({
+      message: err.message || "Error retrieving your client delivery data.",
     });
   }
 };

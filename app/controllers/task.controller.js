@@ -1,7 +1,9 @@
 const { isAdmin, isAdminOrMod } = require("../helpers/checkUser");
 const db = require("../models");
 const Task = db.task;
+const Client = db.client;
 const Op = db.Sequelize.Op;
+const Sequelize = db.Sequelize;
 
 // Create and Save a new Task
 exports.create = async (req, res) => {
@@ -98,6 +100,55 @@ exports.currentUserTasks = (req, res) => {
         message: err.message || "Some error occurred while retrieving Tasks.",
       });
     });
+};
+
+// Retrieve recent distinct tasks for the current user (for prefill)
+exports.recentTasks = async (req, res) => {
+  try {
+    const maxUnique = Math.min(parseInt(req.query.limit) || 5, 25);
+    const tasks = await Task.findAll({
+      where: { userId: req.userId },
+      attributes: [
+        "id",
+        "clientId",
+        "taskType",
+        "billingCategory",
+        "description",
+        "date",
+      ],
+      include: [{ model: Client, attributes: ["id", "name"] }],
+      order: [
+        ["date", "DESC"],
+        ["createdAt", "DESC"],
+      ],
+      limit: maxUnique * 5, // fetch extra rows so dedup still yields enough
+    });
+
+    // Deduplicate by clientId+taskType+billingCategory, keep the most recent
+    const seen = new Set();
+    const unique = [];
+    for (const t of tasks) {
+      if (unique.length >= maxUnique) break;
+      const key = `${t.clientId}-${t.taskType}-${t.billingCategory}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        unique.push({
+          id: t.id,
+          clientId: t.clientId,
+          clientName: t.client?.name || "Unknown",
+          taskType: t.taskType,
+          billingCategory: t.billingCategory,
+          description: t.description,
+        });
+      }
+    }
+
+    res.send(unique);
+  } catch (err) {
+    res.status(500).send({
+      message: err.message || "Error retrieving recent tasks.",
+    });
+  }
 };
 
 // Retrieve all tasks from the database.

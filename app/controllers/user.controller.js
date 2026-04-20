@@ -208,7 +208,17 @@ exports.activate = (req, res) => {
 // Update user preferences
 exports.updatePreferences = (req, res) => {
   const id = req.userId;
-  const { itemsPerPage, darkModeSettings } = req.body;
+  const { itemsPerPage, darkModeSettings, recentTaskLimit } = req.body;
+
+  const ALLOWED_RECENT_LIMITS = [3, 5, 10, 15, 20];
+  if (
+    recentTaskLimit !== undefined &&
+    !ALLOWED_RECENT_LIMITS.includes(recentTaskLimit)
+  ) {
+    return res.status(400).send({
+      message: `recentTaskLimit must be one of: ${ALLOWED_RECENT_LIMITS.join(", ")}`,
+    });
+  }
 
   const ALLOWED_PAGE_SIZES = [10, 20, 50, 100];
   if (
@@ -232,6 +242,7 @@ exports.updatePreferences = (req, res) => {
 
   const updates = {};
   if (itemsPerPage !== undefined) updates.itemsPerPage = itemsPerPage;
+  if (recentTaskLimit !== undefined) updates.recentTaskLimit = recentTaskLimit;
   if (darkModeSettings !== undefined)
     updates.darkModeSettings = JSON.stringify(darkModeSettings);
 

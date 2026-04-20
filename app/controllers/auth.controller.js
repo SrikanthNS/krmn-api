@@ -99,6 +99,7 @@ exports.signin = async (req, res) => {
         email: user.email,
         roles: authorities,
         itemsPerPage: user.itemsPerPage || 20,
+        recentTaskLimit: user.recentTaskLimit || 5,
         darkModeSettings: (() => {
           try {
             return JSON.parse(user.darkModeSettings);

@@ -85,6 +85,15 @@ db.sequelize.sync({ force: false }).then(() => {
         "Enable performance dashboards and analytics (Admin & above only)",
     },
   });
+  FeatureFlag.findOrCreate({
+    where: { key: "task_prefill" },
+    defaults: {
+      key: "task_prefill",
+      enabled: true,
+      description:
+        "Let users prefill new task forms from their recent task history",
+    },
+  });
 });
 // db.sequelize.sync({ force: false, alter: true  }).then(() => {
 //   console.log("DB alter Done.");

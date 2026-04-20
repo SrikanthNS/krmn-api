@@ -21,6 +21,9 @@ module.exports = (app) => {
   // Retrieve current user tasks
   router.get("/user/tasks", [authJwt.verifyToken], task.currentUserTasks);
 
+  // Retrieve recent distinct tasks for prefill
+  router.get("/user/recent", [authJwt.verifyToken], task.recentTasks);
+
   // Retrieve a single Task with id
   router.get("/:id", [authJwt.verifyToken], task.findOne);
 
