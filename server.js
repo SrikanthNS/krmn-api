@@ -33,9 +33,13 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Serve the React build from app/views
-const viewsPath = __dirname + "/app/views/";
-app.use(express.static(viewsPath));
+// Serve the public website (Vite build)
+const websitePath = path.join(__dirname, "app/website/");
+app.use(express.static(websitePath));
+
+// Serve the employee app (CRA build) at /app
+const viewsPath = path.join(__dirname, "app/views/");
+app.use("/app", express.static(viewsPath));
 
 // parse requests of content-type - application/json
 app.use(express.json());
@@ -200,9 +204,18 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", uptime: process.uptime() });
 });
 
-// Send index.html for any non-API route (React SPA)
+// Employee app SPA — serve index.html for all /app/* routes
+app.get("/app/*", function (req, res) {
+  res.sendFile(path.join(viewsPath, "index.html"), function (err) {
+    if (err) {
+      res.status(500).send(err);
+    }
+  });
+});
+
+// Public website SPA — serve index.html for all other non-API routes
 app.get("*", function (req, res) {
-  res.sendFile(viewsPath + "index.html", function (err) {
+  res.sendFile(path.join(websitePath, "index.html"), function (err) {
     if (err) {
       res.status(500).send(err);
     }

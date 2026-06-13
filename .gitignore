@@ -2,10 +2,8 @@
 
 # dependencies
 /node_modules
-/krmn_api/node_modules
 /.pnp
 .pnp.js
-/krmn_api/app/views
 
 # testing
 /coverage
