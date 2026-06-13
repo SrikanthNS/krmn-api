@@ -198,6 +198,8 @@ require("./app/routes/featureFlag.routes")(app);
 require("./app/routes/agent.routes")(app);
 // Analytics routes
 require("./app/routes/analytics.routes")(app);
+// Contact form route
+require("./app/routes/contact.routes")(app);
 
 // Health check
 app.get("/api/health", (req, res) => {
