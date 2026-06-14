@@ -200,6 +200,8 @@ require("./app/routes/agent.routes")(app);
 require("./app/routes/analytics.routes")(app);
 // Contact form route
 require("./app/routes/contact.routes")(app);
+// Careers application route
+require("./app/routes/careers.routes")(app);
 
 // Health check
 app.get("/api/health", (req, res) => {

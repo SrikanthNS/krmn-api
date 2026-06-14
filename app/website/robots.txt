@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://krmn-e2de11e36f87.herokuapp.com/sitemap.xml
